@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			#map {
+			width: 100%;
+			height: 100%;
+			margin: 0;
+            padding: 0;
+            position: absolute;
+			left: 0px;
+			top: 0px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="map"></div>
+		<div id="legend"><h3>Legend</h3></div>
+		<script>
+			function getFile(path, asynch, callback) {
+				var xhr = new XMLHttpRequest();
+				xhr.overrideMimeType("application/json");
+				xhr.open("GET", path, asynch);
+				xhr.onload = function (e) {
+					if (xhr.readyState === 4) {
+						callback(xhr.responseText);
+					}
+				};
+				xhr.onerror = function (e) {
+					console.error(xhr.status);
+				};
+				xhr.send(null);
+			}
+			
+			var works = [];
+			
+			function initMap() {
+				
+				var mapDiv = document.getElementById('map');
+				var map = new google.maps.Map(mapDiv, {
+					center: {lat: 52.17, lng: -1.4408},
+					zoom: 8,
+				});
+				
+				getFile('./config.json', true, function(response) {
+					console.log('got work');
+					var data = JSON.parse(response);
+					var D = data.work;
+					for (var i = 0; i < D.length; i++) {
+						var p = D[i];
+						var rectangle = new google.maps.Rectangle({
+							strokeColor: '#FF0000',
+							strokeOpacity: 0.8,
+							strokeWeight: 2,
+							fillColor: '#FF0000',
+							fillOpacity: 0.35,
+							map: map,
+							bounds: {
+								north: p[0],
+								south: p[2],
+								east: p[3],
+								west: p[1]
+							}
+						});
+						works.push(rectangle);
+					}
+				});
+			}
+		</script>
+		<script async defer
+			src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+		</script>
+	</body>
+</html>

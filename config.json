@@ -1,0 +1,10 @@
+{
+	"auth_service": "ptc",
+	"users":[
+		{"username": "user1", "password": "pass1"},
+		{"username": "user2", "password": "pass2"}
+	],
+	"work":[
+		[51.601829,-1.8409163, 51.5438729,-1.7220607]
+	]
+}
