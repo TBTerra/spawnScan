@@ -1,4 +1,4 @@
-# spawnScan
+# spawnScan 0.0.5(maybe stable(probably not))
 ## A simple and fast spawnPoint finder for pokemon go
 ### Features
 - By performing 6 scans over the course of 1 hour, the spawn locations for a given area can be determined and a live map of active spawns can be made without having to further query the api, lowering server load
