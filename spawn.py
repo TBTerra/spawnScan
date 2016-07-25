@@ -78,7 +78,9 @@ def doScan(sLat, sLng, api):
 							stopLog['lure'] = fort['lure_info']['lure_expires_timestamp_ms']
 						stops[fort['id']] = stopLog
 					if 'gym_points' in fort:
-						gymLog = {'id':fort['id'],'lat':fort['latitude'],'lng':fort['longitude'],'team':fort['owned_by_team']}
+						gymLog = {'id':fort['id'],'lat':fort['latitude'],'lng':fort['longitude'],'team':0}
+						if 'owned_by_team' in fort:
+							gymLog['team'] = fort['owned_by_team']
 						gyms[fort['id']] = gymLog
 
 def genwork():
