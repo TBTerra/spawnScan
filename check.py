@@ -6,7 +6,10 @@ with open('config.json') as file:
 
 def calcwork():
 	totalwork = 0
+	area = 0
 	for rect in config['work']:
+		distN = math.radians(rect[0]-rect[2])*6371
+		distE = math.radians(rect[3]-rect[1])*6371*math.cos(math.radians((rect[0]+rect[2])*0.5))
 		dlat = 0.6*0.00225
 		dlng = dlat / math.cos(math.radians((rect[0]+rect[2])*0.5))
 		latSteps = int((((rect[0]-rect[2]))/dlat)+0.75199999)
@@ -16,7 +19,8 @@ def calcwork():
 		if lngSteps<1:
 			lngSteps=1
 		totalwork += latSteps * lngSteps
-	return totalwork
+		area += distN * distE
+	return totalwork, area
 
-tscans = calcwork()
-print 'total of {} steps, approx {} seconds for scan'.format(tscans,tscans/(4.5*len(config['users'])))
+tscans,tarea = calcwork()
+print 'total of {} steps covering {} km^2, approx {} seconds for scan'.format(tscans,tarea,tscans/(4.5*len(config['users'])))
