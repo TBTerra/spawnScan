@@ -3,6 +3,7 @@ import math
 import os
 import logging
 import time
+import geojson
 
 import threading
 
@@ -209,6 +210,31 @@ def main():
 		out.append(poke)
 	f = open('gyms.json','w')
 	json.dump(out,f)
+	f.close()
+
+#output GeoJSON data
+	with open('gyms.json') as file:
+		items = json.load(file)
+	geopoints = []
+	for location in items:
+		point = geojson.Point((location['lng'], location['lat']))
+		feature = geojson.Feature(geometry=point, id=location['id'],properties={"name":location['id']})
+		geopoints.append(feature)
+	features = geojson.FeatureCollection(geostops)
+	f = open('geo_gyms.json','w')
+	json.dump(features,f)
+	f.close()
+
+	with open('stops.json') as file:
+		items = json.load(file)
+	geopoints = []
+	for location in items:
+		point = geojson.Point((location['lng'], location['lat']))
+		feature = geojson.Feature(geometry=point, id=location['id'],properties={"name":location['id']})
+		geopoints.append(feature)
+	features = geojson.FeatureCollection(geostops)
+	f = open('geo_stops.json','w')
+	json.dump(features,f)
 	f.close()
 
 if __name__ == '__main__':
