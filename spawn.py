@@ -52,7 +52,10 @@ def doScan(sLat, sLng, api):
 	response_dict = api.call()
 	try:
 		cells = response_dict['responses']['GET_MAP_OBJECTS']['map_cells']
-	except TypeError, KeyError:
+	except TypeError:
+		print ('error getting map data for {}, {}'.format(sLat, sLng))
+		return
+	except KeyError:
 		print ('error getting map data for {}, {}'.format(sLat, sLng))
 		return
 	for cell in cells:
