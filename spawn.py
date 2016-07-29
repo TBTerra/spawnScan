@@ -121,36 +121,42 @@ def worker(wid,Tthreads):
 	print 'worker {} is doing first pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
+		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do first pass now sleeping for {}'.format(wid,curTime-startTime,600-(curTime-startTime))
 	time.sleep(600-(curTime-startTime))
 	print 'worker {} is doing second pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
+		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do second pass now sleeping for {}'.format(wid,curTime-startTime,1200-(curTime-startTime))
 	time.sleep(1200-(curTime-startTime))
 	print 'worker {} is doing third pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
+		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do third pass now sleeping for {}'.format(wid,curTime-startTime,1800-(curTime-startTime))
 	time.sleep(1800-(curTime-startTime))
 	print 'worker {} is doing fourth pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
+		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do fourth pass now sleeping for {}'.format(wid,curTime-startTime,2400-(curTime-startTime))
 	time.sleep(2400-(curTime-startTime))
 	print 'worker {} is doing fifth pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
+		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do fifth pass now sleeping for {}'.format(wid,curTime-startTime,3000-(curTime-startTime))
 	time.sleep(3000-(curTime-startTime))
 	print 'worker {} is doing sixth pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
+		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do sixth pass'.format(wid,curTime-startTime)
 

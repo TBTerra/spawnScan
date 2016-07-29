@@ -23,4 +23,4 @@ def calcwork():
 	return totalwork, area
 
 tscans,tarea = calcwork()
-print 'total of {} steps covering {} km^2, approx {} seconds for scan'.format(tscans,tarea,tscans/(4.5*len(config['users'])))
+print 'total of {} steps covering {} km^2, approx {} seconds for scan'.format(tscans,tarea,tscans/(2.25*len(config['users'])))
