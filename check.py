@@ -10,7 +10,7 @@ def calcwork():
 	for rect in config['work']:
 		distN = math.radians(max(rect[0], rect[2])-min(rect[0], rect[2]))*6371
 		distE = math.radians(max(rect[3], rect[1])-min(rect[3], rect[1]))*6371*math.cos(math.radians((rect[0]+rect[2])*0.5))
-		dlat = 0.6*0.00225
+		dlat = 0.00089
 		dlng = dlat / math.cos(math.radians((rect[0]+rect[2])*0.5))
 		latSteps = int((((max(rect[0], rect[2])-min(rect[0], rect[2])))/dlat)+0.75199999)
 		if latSteps<1:

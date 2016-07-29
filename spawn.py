@@ -90,7 +90,7 @@ def doScan(sLat, sLng, api):
 def genwork():
 	totalwork = 0
 	for rect in config['work']:
-		dlat = 0.6*0.00225
+		dlat = 0.00089
 		dlng = dlat / math.cos(math.radians((rect[0]+rect[2])*0.5))
 		startLat = min(rect[0], rect[2])+(0.624*dlat)
 		startLng = min(rect[1], rect[3])+(0.624*dlng)

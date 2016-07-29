@@ -1,4 +1,6 @@
-# spawnScan 0.1.3(mostly stable)(now with a fancy map)
+# spawnScan 0.1.4(mostly stable)(now with a fancy map)
+Now has simple rate limiting and takes account of the 70m search radius
+
 ## A simple and fast spawnPoint finder for pokemon go
 ### Features
 - By performing 6 scans over the course of 1 hour, the spawn locations for a given area can be determined and a live map of active spawns can be made without having to further query the api, lowering server load
