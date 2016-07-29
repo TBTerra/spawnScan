@@ -162,8 +162,8 @@ def worker(wid,Tthreads):
 
 def main():
 	tscans = genwork()
-	print 'total of {} steps, approx {} seconds for scan'.format(tscans,tscans/(4.5*len(config['users'])))
-	if (tscans/(4.5*len(config['users']))) > 600:
+	print 'total of {} steps, approx {} seconds for scan'.format(tscans,tscans/(2.25*len(config['users'])))
+	if (tscans/(2.25*len(config['users']))) > 600:
 		print 'error. scan will take more than 10mins so all 6 scans will take more than 1 hour'
 		print 'please try scanning a smaller area'
 		return
