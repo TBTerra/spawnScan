@@ -8,14 +8,14 @@ def calcwork():
 	totalwork = 0
 	area = 0
 	for rect in config['work']:
-		distN = math.radians(rect[0]-rect[2])*6371
-		distE = math.radians(rect[3]-rect[1])*6371*math.cos(math.radians((rect[0]+rect[2])*0.5))
+		distN = math.radians(max(rect[0], rect[2])-min(rect[0], rect[2]))*6371
+		distE = math.radians(max(rect[3], rect[1])-min(rect[3], rect[1]))*6371*math.cos(math.radians((rect[0]+rect[2])*0.5))
 		dlat = 0.6*0.00225
 		dlng = dlat / math.cos(math.radians((rect[0]+rect[2])*0.5))
-		latSteps = int((((rect[0]-rect[2]))/dlat)+0.75199999)
+		latSteps = int((((max(rect[0], rect[2])-min(rect[0], rect[2])))/dlat)+0.75199999)
 		if latSteps<1:
 			latSteps=1
-		lngSteps = int((((rect[3]-rect[1]))/dlng)+0.75199999)
+		lngSteps = int((((max(rect[1], rect[3])-min(rect[1], rect[3])))/dlng)+0.75199999)
 		if lngSteps<1:
 			lngSteps=1
 		totalwork += latSteps * lngSteps

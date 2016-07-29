@@ -92,12 +92,12 @@ def genwork():
 	for rect in config['work']:
 		dlat = 0.6*0.00225
 		dlng = dlat / math.cos(math.radians((rect[0]+rect[2])*0.5))
-		startLat = rect[2]+(0.624*dlat)
-		startLng = rect[1]+(0.624*dlng)
-		latSteps = int((((rect[0]-rect[2]))/dlat)+0.75199999)
+		startLat = min(rect[0], rect[2])+(0.624*dlat)
+		startLng = min(rect[1], rect[3])+(0.624*dlng)
+		latSteps = int((((max(rect[0], rect[2])-min(rect[0], rect[2])))/dlat)+0.75199999)
 		if latSteps<1:
 			latSteps=1
-		lngSteps = int((((rect[3]-rect[1]))/dlng)+0.75199999)
+		lngSteps = int((((max(rect[1], rect[3])-min(rect[1], rect[3])))/dlng)+0.75199999)
 		if lngSteps<1:
 			lngSteps=1
 		for i in range(latSteps):
@@ -162,8 +162,8 @@ def worker(wid,Tthreads):
 
 def main():
 	tscans = genwork()
-	print 'total of {} steps, approx {} seconds for scan'.format(tscans,tscans/(4.5*len(config['users'])))
-	if (tscans/(4.5*len(config['users']))) > 600:
+	print 'total of {} steps, approx {} seconds for scan'.format(tscans,tscans/(2.25*len(config['users'])))
+	if (tscans/(2.25*len(config['users']))) > 600:
 		print 'error. scan will take more than 10mins so all 6 scans will take more than 1 hour'
 		print 'please try scanning a smaller area'
 		return
