@@ -86,6 +86,7 @@ def doScan(sLat, sLng, api):
 						if 'owned_by_team' in fort:
 							gymLog['team'] = fort['owned_by_team']
 						gyms[fort['id']] = gymLog
+	time.sleep(config['scanDelay'])
 
 def genwork():
 	totalwork = 0
@@ -106,66 +107,63 @@ def genwork():
 		totalwork += latSteps * lngSteps
 	return totalwork
 
-def worker(wid,Tthreads):
-	workStart = int((wid*len(scans))/Tthreads)
-	workStop = int(((wid+1)*len(scans))/Tthreads)
+def worker(wid,Wstart):
+	workStart = min(Wstart,len(scans)-1)
+	workStop = min(Wstart+config['stepsPerPassPerWorker'],len(scans)-1)
+	if workStart == workStop:
+		return
 	print 'worker {} is doing steps {} to {}'.format(wid,workStart,workStop)
 	#login
 	api = PGoApi()
 	api.set_position(0,0,0)
-	if not api.login(config['auth_service'], config['users'][wid]['username'], config['users'][wid]['password']):
-		print 'worker {} unable to log in'.format(wid)
-		return
+	while not api.login(config['auth_service'], config['users'][wid]['username'], config['users'][wid]['password']):
+		print 'worker {} unable to log in, retrying'.format(wid)
+		time.sleep(2)
 	#iterate
 	startTime = time.time()
 	print 'worker {} is doing first pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
-		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do first pass now sleeping for {}'.format(wid,curTime-startTime,600-(curTime-startTime))
 	time.sleep(600-(curTime-startTime))
 	print 'worker {} is doing second pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
-		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do second pass now sleeping for {}'.format(wid,curTime-startTime,1200-(curTime-startTime))
 	time.sleep(1200-(curTime-startTime))
 	print 'worker {} is doing third pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
-		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do third pass now sleeping for {}'.format(wid,curTime-startTime,1800-(curTime-startTime))
 	time.sleep(1800-(curTime-startTime))
 	print 'worker {} is doing fourth pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
-		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do fourth pass now sleeping for {}'.format(wid,curTime-startTime,2400-(curTime-startTime))
 	time.sleep(2400-(curTime-startTime))
 	print 'worker {} is doing fifth pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
-		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do fifth pass now sleeping for {}'.format(wid,curTime-startTime,3000-(curTime-startTime))
 	time.sleep(3000-(curTime-startTime))
 	print 'worker {} is doing sixth pass'.format(wid)
 	for i in xrange(workStart,workStop):
 		doScan(scans[i][0], scans[i][1], api)
-		time.sleep(0.2)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do sixth pass'.format(wid,curTime-startTime)
 
 def main():
 	tscans = genwork()
-	print 'total of {} steps, approx {} seconds for scan'.format(tscans,tscans/(2.25*len(config['users'])))
-	if (tscans/(2.25*len(config['users']))) > 600:
+	print 'total of {} steps'.format(tscans)
+	print 'with {} workers, doing {} scans each, would take {} hours'.format(len(config['users']),config['stepsPerPassPerWorker'],int(math.ceil(tscans/config['stepsPerPassPerWorker'])))
+	if (config['stepsPerPassPerWorker']*config['scanDelay']) > 600:
 		print 'error. scan will take more than 10mins so all 6 scans will take more than 1 hour'
-		print 'please try scanning a smaller area'
+		print 'please try using less scans per worker'
 		return
 #heres the logging setup
 	# log settings
@@ -183,12 +181,21 @@ def main():
 		return None
 #setup done
 
-#output
-	threads = []
-	for user in config['users']:
-		t = threading.Thread(target=worker, args = (len(threads),len(config['users'])))
-		t.start()
-		threads.append(t)
+	threads = [None]*len(config['users'])
+	scansStarted = 0
+	for i in xrange(len(config['users'])):
+		if scansStarted >= len(scans):
+			break;
+		threads[i] = threading.Thread(target=worker, args = (i,scansStarted))
+		threads[i].start()
+		scansStarted += config['stepsPerPassPerWorker']
+	while scansStarted < len(scans):
+		time.sleep(5)
+		for i in xrange(len(threads)):
+			if not threads[i].isAlive():
+				threads[i] = threading.Thread(target=worker, args = (i,scansStarted))
+				threads[i].start()
+				scansStarted += config['stepsPerPassPerWorker']
 	for t in threads:
 		t.join()
 	print 'all done. saving data'

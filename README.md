@@ -1,5 +1,5 @@
-# spawnScan 0.1.4(mostly stable)(now with a fancy map)
-Now has simple rate limiting and takes account of the 70m search radius
+# spawnScan 0.1.5(mostly stable)(now with a fancy map)(updated for 1st aug patch)
+Now has customisable rate-limiting, a handler for oversized scans, and takes account of the 70m search radius
 
 ## A simple and fast spawnPoint finder for pokemon go
 ### Features
@@ -7,7 +7,8 @@ Now has simple rate limiting and takes account of the 70m search radius
 - Rectangle search areas, and multiple of them
 - The scans take account of longitude distortion, so requests are equally spaced (was not the case in early mapping tools causing them to perform badly near the equator because their requests where too spread out)
 - High speed scans while still maintaining maximum accuracy (many scan patterns where tested and this is using the fastest of the ones with over 98% accuracy)
-- Multi thread support, allowing for faster, and thus forth bigger scans (up to 24 workers, after this point there is minimal increase in speed and your just putting more load on the servers)
+- Multi thread support, allowing for faster, and thus forth bigger scans (up to at least 24 workers)
+- if a scan is too large to complete in 1 go, it will be divided up and processed over multiple hours if needed
 
 ### Usage
 Everything is set using the config.json file, in this you put account details, and rectangular regions to scan
