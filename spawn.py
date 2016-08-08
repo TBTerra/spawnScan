@@ -7,10 +7,9 @@ import geojson
 
 import threading
 
-from pgoapi import PGoApi
-from pgoapi.utilities import f2i
+from pgoapi import pgoapi
+from pgoapi import utilities as util
 
-from google.protobuf.internal import encoder
 from s2sphere import CellId, LatLng
 
 pokes = {}
@@ -24,39 +23,19 @@ scans = []
 with open('config.json') as file:
 	config = json.load(file)
 
-def get_cellid(lat, long):
-	origin = CellId.from_lat_lng(LatLng.from_degrees(lat, long)).parent(15)
-	walk = [origin.id()]
-
-	# 10 before and 10 after
-	next = origin.next()
-	prev = origin.prev()
-	for i in range(10):
-		walk.append(prev.id())
-		walk.append(next.id())
-		next = next.next()
-		prev = prev.prev()
-	return ''.join(map(encode, sorted(walk)))
-
-def encode(cellid):
-	output = []
-	encoder._VarintEncoder()(output.append, cellid)
-	return ''.join(output)
-
-def doScan(sLat, sLng, api):
+def doScan(wid, sLat, sLng, api):
 	#print ('scanning ({}, {})'.format(sLat, sLng))
 	api.set_position(sLat,sLng,0)
-	timestamp = "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-	cellid = get_cellid(sLat, sLng)
-	api.get_map_objects(latitude=f2i(sLat), longitude=f2i(sLng), since_timestamp_ms=timestamp, cell_id=cellid)
-	response_dict = api.call()
+	cell_ids = util.get_cell_ids(lat=sLat, long=sLng, radius=150)
+	timestamps = [0,] * len(cell_ids)
+	response_dict = api.get_map_objects(latitude = sLat, longitude = sLng, since_timestamp_ms = timestamps, cell_id = cell_ids)
 	try:
 		cells = response_dict['responses']['GET_MAP_OBJECTS']['map_cells']
 	except TypeError:
-		print ('error getting map data for {}, {}'.format(sLat, sLng))
+		print ('thread {} error getting map data for {}, {}'.format(wid,sLat, sLng))
 		return
 	except KeyError:
-		print ('error getting map data for {}, {}'.format(sLat, sLng))
+		print ('thread {} error getting map data for {}, {}'.format(wid,sLat, sLng))
 		return
 	for cell in cells:
 		curTime = cell['current_timestamp_ms']
@@ -66,10 +45,10 @@ def doScan(sLat, sLng, api):
 					timeSpawn = (curTime+(wild['time_till_hidden_ms']))-900000
 					gmSpawn = time.gmtime(int(timeSpawn/1000))
 					secSpawn = (gmSpawn.tm_min*60)+(gmSpawn.tm_sec)
-					phash = '{},{}'.format(timeSpawn,wild['spawnpoint_id'])
-					shash = '{},{}'.format(secSpawn,wild['spawnpoint_id'])
-					pokeLog = {'time':timeSpawn, 'sid':wild['spawnpoint_id'], 'lat':wild['latitude'], 'lng':wild['longitude'], 'pid':wild['pokemon_data']['pokemon_id'], 'cell':CellId.from_lat_lng(LatLng.from_degrees(wild['latitude'], wild['longitude'])).to_token()}
-					spawnLog = {'time':secSpawn, 'sid':wild['spawnpoint_id'], 'lat':wild['latitude'], 'lng':wild['longitude'], 'cell':CellId.from_lat_lng(LatLng.from_degrees(wild['latitude'], wild['longitude'])).to_token()}
+					phash = '{},{}'.format(timeSpawn,wild['spawn_point_id'])
+					shash = '{},{}'.format(secSpawn,wild['spawn_point_id'])
+					pokeLog = {'time':timeSpawn, 'sid':wild['spawn_point_id'], 'lat':wild['latitude'], 'lng':wild['longitude'], 'pid':wild['pokemon_data']['pokemon_id'], 'cell':CellId.from_lat_lng(LatLng.from_degrees(wild['latitude'], wild['longitude'])).to_token()}
+					spawnLog = {'time':secSpawn, 'sid':wild['spawn_point_id'], 'lat':wild['latitude'], 'lng':wild['longitude'], 'cell':CellId.from_lat_lng(LatLng.from_degrees(wild['latitude'], wild['longitude'])).to_token()}
 					pokes[phash] = pokeLog
 					spawns[shash] = spawnLog
 		if 'forts' in cell:
@@ -114,46 +93,43 @@ def worker(wid,Wstart):
 		return
 	print 'worker {} is doing steps {} to {}'.format(wid,workStart,workStop)
 	#login
-	api = PGoApi()
-	api.set_position(0,0,0)
-	while not api.login(config['auth_service'], config['users'][wid]['username'], config['users'][wid]['password']):
-		print 'worker {} unable to log in, retrying'.format(wid)
-		time.sleep(2)
+	api = pgoapi.PGoApi(provider=config['auth_service'], username=config['users'][wid]['username'], password=config['users'][wid]['password'], position_lat=0, position_lng=0, position_alt=0)
+	api.activate_signature("encrypt.dll")
 	#iterate
 	startTime = time.time()
 	print 'worker {} is doing first pass'.format(wid)
 	for i in xrange(workStart,workStop):
-		doScan(scans[i][0], scans[i][1], api)
+		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do first pass now sleeping for {}'.format(wid,curTime-startTime,600-(curTime-startTime))
 	time.sleep(600-(curTime-startTime))
 	print 'worker {} is doing second pass'.format(wid)
 	for i in xrange(workStart,workStop):
-		doScan(scans[i][0], scans[i][1], api)
+		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do second pass now sleeping for {}'.format(wid,curTime-startTime,1200-(curTime-startTime))
 	time.sleep(1200-(curTime-startTime))
 	print 'worker {} is doing third pass'.format(wid)
 	for i in xrange(workStart,workStop):
-		doScan(scans[i][0], scans[i][1], api)
+		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do third pass now sleeping for {}'.format(wid,curTime-startTime,1800-(curTime-startTime))
 	time.sleep(1800-(curTime-startTime))
 	print 'worker {} is doing fourth pass'.format(wid)
 	for i in xrange(workStart,workStop):
-		doScan(scans[i][0], scans[i][1], api)
+		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do fourth pass now sleeping for {}'.format(wid,curTime-startTime,2400-(curTime-startTime))
 	time.sleep(2400-(curTime-startTime))
 	print 'worker {} is doing fifth pass'.format(wid)
 	for i in xrange(workStart,workStop):
-		doScan(scans[i][0], scans[i][1], api)
+		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do fifth pass now sleeping for {}'.format(wid,curTime-startTime,3000-(curTime-startTime))
 	time.sleep(3000-(curTime-startTime))
 	print 'worker {} is doing sixth pass'.format(wid)
 	for i in xrange(workStart,workStop):
-		doScan(scans[i][0], scans[i][1], api)
+		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do sixth pass'.format(wid,curTime-startTime)
 

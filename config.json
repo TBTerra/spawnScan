@@ -5,8 +5,9 @@
 		{"username": "user2", "password": "pass2"}
 	],
 	"work":[
+		[lat1,long1, lat2,long2],
 		[lat1,long1, lat2,long2]
 	],
 	"stepsPerPassPerWorker": 50,
-	"scanDelay": 10
+	"scanDelay": 10.5
 }

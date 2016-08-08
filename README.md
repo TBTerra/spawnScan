@@ -1,4 +1,4 @@
-# spawnScan 0.1.5(mostly stable)(now with a fancy map)(updated for 1st aug patch)
+# spawnScan 0.2.0(mostly stable)(updated for 6st aug patch[unknown 6])
 Now has customisable rate-limiting, a handler for oversized scans, and takes account of the 70m search radius
 
 ## A simple and fast spawnPoint finder for pokemon go
@@ -12,9 +12,10 @@ Now has customisable rate-limiting, a handler for oversized scans, and takes acc
 
 ### Usage
 Everything is set using the config.json file, in this you put account details, and rectangular regions to scan
-There are two runnable scripts, check.py, and spawn.py
-- check.py checks the config file is valid json, and estimates how long the scan will take to finish one pass
-- spawn.py is the main script that does all the heavy work, finding the spawns, it will refuse to run on a workload that is predicted to take more than 10minutes, as it needs to be able to do 6 passes in an hour
+There are three runnable scripts, tos.py, check.py, and spawn.py
+- tos.py accepts the tos on all accounts listed in config.json
+- check.py checks the config file is valid json, and estimates how long the scan will take to finish
+- spawn.py is the main script that does all the heavy work, finding the spawns
 
 Also note that spawn.py overwrites its output files each run, so do back them up
 
@@ -36,8 +37,12 @@ The map of the spawn points will try to update its markers once per second, whil
 ### Recommended method
 The recommended way to use this script is first to plan out your scan area, using viewWork.html to visualise it, and check.py to make sure it wont take too long
 
-After that run spawn.py and wait for it to complete (should take between 51 and 60 minutes depending on size of scan)
+remember to run tos.py if your scanning accounts have not yet accepted the ingame tos
+
+After that run spawn.py and wait for it to complete
 
 Then enjoy the map of the spawn points
 
 If you would like to help contribute data, please send a ziped copy of the output files [pokes.json,spawns.json,stops.json,gyms.json] via private message, to reddit user TBTerra
+
+#Note: encript.dll is for use with python 32bit on windows, other os's you may need to find the apropriate .dll or .so file
