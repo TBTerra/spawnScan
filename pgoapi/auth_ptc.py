@@ -23,12 +23,21 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 Author: tjado <https://github.com/tejado>
 """
 
+from __future__ import absolute_import
+from future.standard_library import install_aliases
+install_aliases()
+
 import re
+import six
 import json
 import logging
 import requests
 
-from auth import Auth
+from urllib.parse import parse_qs
+
+from pgoapi.auth import Auth
+from pgoapi.utilities import get_time
+from pgoapi.exceptions import AuthException
 
 class AuthPtc(Auth):
 
@@ -44,54 +53,96 @@ class AuthPtc(Auth):
         self._session = requests.session()
         self._session.verify = True
 
-    def login(self, username, password):
+    def user_login(self, username, password):
+        self.log.info('PTC User Login for: {}'.format(username))
 
-        self.log.info('Login for: %s', username)
+        if not isinstance(username, six.string_types) or not isinstance(password, six.string_types):
+            raise AuthException("Username/password not correctly specified")
         
         head = {'User-Agent': 'niantic'}
         r = self._session.get(self.PTC_LOGIN_URL, headers=head)
-        
-        jdata = json.loads(r.content)
-        data = {
-            'lt': jdata['lt'],
-            'execution': jdata['execution'],
-            '_eventId': 'submit',
-            'username': username,
-            'password': password,
-        }
+
+        try:
+            jdata = json.loads(r.content.decode('utf-8'))
+            data = {
+                'lt': jdata['lt'],
+                'execution': jdata['execution'],
+                '_eventId': 'submit',
+                'username': username,
+                'password': password,
+            }
+        except ValueError as e:
+            self.log.error('PTC User Login Error - Field missing in response: %s', e)
+            return False
+        except KeyError as e:
+            self.log.error('PTC User Login Error - Field missing in response.content: %s', e)
+            return False
+
         r1 = self._session.post(self.PTC_LOGIN_URL, data=data, headers=head)
 
         ticket = None
         try:
             ticket = re.sub('.*ticket=', '', r1.history[0].headers['Location'])
-        except Exception,e:
+        except Exception as e:
             try:
                 self.log.error('Could not retrieve token: %s', r1.json()['errors'][0])
             except Exception as e:
-                self.log.error('Could not retrieve token! (%s)', str(e))
+                self.log.error('Could not retrieve token! (%s)', e)
             return False
 
-        data1 = {
-            'client_id': 'mobile-app_pokemon-go',
-            'redirect_uri': 'https://www.nianticlabs.com/pokemongo/error',
-            'client_secret': self.PTC_LOGIN_CLIENT_SECRET,
-            'grant_type': 'refresh_token',
-            'code': ticket,
-        }
-        
-        r2 = self._session.post(self.PTC_LOGIN_OAUTH, data=data1)
-        access_token = re.sub('&expires.*', '', r2.content)
-        access_token = re.sub('.*access_token=', '', access_token)
+        self._refresh_token = ticket
+        self.log.info('PTC User Login successful.')
 
-        if '-sso.pokemon.com' in access_token:
-            self.log.info('PTC Login successful')
-            self.log.debug('PTC Session Token: %s', access_token[:25])
-            self._auth_token = access_token
+        self.get_access_token()
+
+    def set_refresh_token(self, refresh_token):
+        self.log.info('PTC Refresh Token provided by user')
+        self._refresh_token = refresh_token
+
+    def get_access_token(self, force_refresh = False):
+        token_validity = self.check_access_token()
+
+        if token_validity is True and force_refresh is False:
+            self.log.debug('Using cached PTC Access Token')
+            return self._access_token
         else:
-            self.log.info('Seems not to be a PTC Session Token... login failed :(')
-            return False
-        
-        self._login = True
-        
-        return True
+            if force_refresh:
+                self.log.info('Forced request of PTC Access Token!')
+            else:
+                self.log.info('Request PTC Access Token...')
+
+            data1 = {
+                'client_id': 'mobile-app_pokemon-go',
+                'redirect_uri': 'https://www.nianticlabs.com/pokemongo/error',
+                'client_secret': self.PTC_LOGIN_CLIENT_SECRET,
+                'grant_type': 'refresh_token',
+                'code': self._refresh_token,
+            }
+            
+            r2 = self._session.post(self.PTC_LOGIN_OAUTH, data=data1)
+
+            qs = r2.content.decode('utf-8')
+            token_data = parse_qs(qs)
+            
+            access_token = token_data.get('access_token', None)
+            if access_token is not None:
+                self._access_token = access_token[0]
+
+                now_s = get_time()
+                expires = int(token_data.get('expires', [0])[0])
+                if expires > 0:
+                    self._access_token_expiry = expires + now_s
+                else:
+                    self._access_token_expiry = 0
+
+                self._login = True
+
+                self.log.info('PTC Access Token successfully retrieved.')
+                self.log.debug('PTC Access Token: %s...', self._access_token[:25])
+            else:
+                self._access_token = None
+                self._login = False
+                raise AuthException("Could not retrieve a PTC Access Token")
+
+
         
