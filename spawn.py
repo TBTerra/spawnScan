@@ -28,9 +28,23 @@ with open('config.json') as file:
 def doScan(wid, sLat, sLng, api):
 	#print ('scanning ({}, {})'.format(sLat, sLng))
 	api.set_position(sLat,sLng,0)
-	cell_ids = util.get_cell_ids(lat=sLat, long=sLng, radius=150)
+	cell_ids = util.get_cell_ids(lat=sLat, long=sLng, radius=80)
 	timestamps = [0,] * len(cell_ids)
-	response_dict = api.get_map_objects(latitude = sLat, longitude = sLng, since_timestamp_ms = timestamps, cell_id = cell_ids)
+	while True:
+		try:
+			response_dict = api.get_map_objects(latitude = sLat, longitude = sLng, since_timestamp_ms = timestamps, cell_id = cell_ids)
+		except  ServerSideRequestThrottlingException:
+			config['scanDelay'] += 0.5
+			print ('kk.. increasing sleep by 0.5 to [}').format(sleepperscan)
+			time.sleep(config['scanDelay'])
+			continue
+		except:
+			time.sleep(config['scanDelay'])
+			api.set_position(sLat,sLng,0)
+			time.sleep(config['scanDelay'])
+			continue
+		break
+		
 	try:
 		cells = response_dict['responses']['GET_MAP_OBJECTS']['map_cells']
 	except TypeError:

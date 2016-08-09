@@ -1,4 +1,4 @@
-# spawnScan 0.2.0(mostly stable)(updated for 6st aug patch[unknown 6])
+# spawnScan 0.2.2(mostly stable)(updated for 6st aug patch[unknown 6])
 Now has customisable rate-limiting, a handler for oversized scans, and takes account of the 70m search radius
 
 ## A simple and fast spawnPoint finder for pokemon go
@@ -44,5 +44,3 @@ After that run spawn.py and wait for it to complete
 Then enjoy the map of the spawn points
 
 If you would like to help contribute data, please send a ziped copy of the output files [pokes.json,spawns.json,stops.json,gyms.json] via private message, to reddit user TBTerra
-
-#Note: encript.dll is for use with python 32bit on windows, other os's you may need to find the apropriate .dll or .so file
