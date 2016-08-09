@@ -22,6 +22,8 @@ Also note that spawn.py overwrites its output files each run, so do back them up
 If you would like to help contribute data, please send a ziped copy of the output files [pokes.json,spawns.json,stops.json,gyms.json] via private message, to reddit user TBTerra
 
 ### Maps
+when veiwed localy maps will only work in firefox, however they will work in any browser when on a webserver
+
 The maps will not work by default as you will have to use your own maps API key
 
 To get an API key visit [this page](https://developers.google.com/maps/documentation/javascript/get-api-key) and click on get key
