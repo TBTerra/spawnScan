@@ -49,9 +49,11 @@ def doScan(wid, sLat, sLng, api):
 		cells = response_dict['responses']['GET_MAP_OBJECTS']['map_cells']
 	except TypeError:
 		print ('thread {} error getting map data for {}, {}'.format(wid,sLat, sLng))
+		time.sleep(config['scanDelay'])
 		return
 	except KeyError:
 		print ('thread {} error getting map data for {}, {}'.format(wid,sLat, sLng))
+		time.sleep(config['scanDelay'])
 		return
 	for cell in cells:
 		curTime = cell['current_timestamp_ms']
