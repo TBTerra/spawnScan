@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 import json
 import math
 import os
@@ -6,6 +7,7 @@ import time
 import geojson
 
 import threading
+import utils
 
 from pgoapi import pgoapi
 from pgoapi import utilities as util
@@ -94,7 +96,7 @@ def worker(wid,Wstart):
 	print 'worker {} is doing steps {} to {}'.format(wid,workStart,workStop)
 	#login
 	api = pgoapi.PGoApi(provider=config['auth_service'], username=config['users'][wid]['username'], password=config['users'][wid]['password'], position_lat=0, position_lng=0, position_alt=0)
-	api.activate_signature("encrypt.dll")
+	api.activate_signature(utils.get_encryption_lib_path())
 	#iterate
 	startTime = time.time()
 	print 'worker {} is doing first pass'.format(wid)
