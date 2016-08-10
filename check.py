@@ -27,4 +27,4 @@ print 'total of {} steps covering {} km^2'.format(tscans,tarea)
 numWorkers = ((tscans-1)//config['stepsPerPassPerWorker'])+1
 if numWorkers > len(config['users']):
 	numWorkers = len(config['users'])
-print 'with {} workers, doing {} scans each, would take {} hours'.format(numWorkers,config['stepsPerPassPerWorker'],int(math.ceil(tscans/(config['stepsPerPassPerWorker']*numWorkers))))
+print 'with {} worker(s), doing {} scans each, would take {} hour(s)'.format(numWorkers,config['stepsPerPassPerWorker'],int(math.ceil(float(tscans)/(config['stepsPerPassPerWorker']*numWorkers))))
