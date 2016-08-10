@@ -11,6 +11,7 @@ import utils
 
 from pgoapi import pgoapi
 from pgoapi import utilities as util
+from pgoapi.exceptions import NotLoggedInException, ServerSideRequestThrottlingException, ServerBusyOrOfflineException
 
 from s2sphere import CellId, LatLng
 
@@ -20,10 +21,22 @@ stops = {}
 gyms = {}
 
 scans = []
+num2words = ['first','second','third','forth','fith','sixth']
 
 #config file
 with open('config.json') as file:
 	config = json.load(file)
+
+def doScanp(wid, sLat, sLng, api):
+	for i in range(0,10):
+		try:
+			doScan(wid, sLat, sLng, api)
+		except (KeyError,TypeError):
+			print('thread {} error scan returned error, retry {}/10').format(wid,i)
+			time.sleep(config['scanDelay'])
+			continue
+		else:
+			break
 
 def doScan(wid, sLat, sLng, api):
 	#print ('scanning ({}, {})'.format(sLat, sLng))
@@ -35,7 +48,7 @@ def doScan(wid, sLat, sLng, api):
 			response_dict = api.get_map_objects(latitude = sLat, longitude = sLng, since_timestamp_ms = timestamps, cell_id = cell_ids)
 		except  ServerSideRequestThrottlingException:
 			config['scanDelay'] += 0.5
-			print ('kk.. increasing sleep by 0.5 to [}').format(sleepperscan)
+			print ('kk.. increasing sleep by 0.5 to [}').format(config['scanDelay'])
 			time.sleep(config['scanDelay'])
 			continue
 		except:
@@ -49,11 +62,10 @@ def doScan(wid, sLat, sLng, api):
 		cells = response_dict['responses']['GET_MAP_OBJECTS']['map_cells']
 	except TypeError:
 		print ('thread {} error getting map data for {}, {}'.format(wid,sLat, sLng))
-		time.sleep(config['scanDelay'])
-		return
+		raise
 	except KeyError:
 		print ('thread {} error getting map data for {}, {}'.format(wid,sLat, sLng))
-		time.sleep(config['scanDelay'])
+		raise
 		return
 	for cell in cells:
 		curTime = cell['current_timestamp_ms']
@@ -113,48 +125,34 @@ def worker(wid,Wstart):
 	#login
 	api = pgoapi.PGoApi(provider=config['auth_service'], username=config['users'][wid]['username'], password=config['users'][wid]['password'], position_lat=0, position_lng=0, position_alt=0)
 	api.activate_signature(utils.get_encryption_lib_path())
+	time.sleep(0.5)
+	api.get_player()
 	#iterate
+	for j in range(5)
+		startTime = time.time()
+		print 'worker {} is doing {} pass'.format(wid,num2words[j])
+		for i in xrange(workStart,workStop):
+			doScan(wid,scans[i][0], scans[i][1], api)
+		curTime=time.time()
+		if 600-(curTime-startTime) > 0:
+			print 'worker {} took {} seconds to do {} pass now sleeping for {}'.format(wid,curTime-startTime,j,600-(curTime-startTime))
+			time.sleep(600-(curTime-startTime))
+		else:
+			print 'worker {} took {} seconds to do pass so not sleeping'.format(wid,curTime-startTime,j)
 	startTime = time.time()
-	print 'worker {} is doing first pass'.format(wid)
+	print 'worker {} is doing {} pass'.format(wid,num2words[6])
 	for i in xrange(workStart,workStop):
 		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
-	print 'worker {} took {} seconds to do first pass now sleeping for {}'.format(wid,curTime-startTime,600-(curTime-startTime))
-	time.sleep(600-(curTime-startTime))
-	print 'worker {} is doing second pass'.format(wid)
-	for i in xrange(workStart,workStop):
-		doScan(wid,scans[i][0], scans[i][1], api)
-	curTime=time.time()
-	print 'worker {} took {} seconds to do second pass now sleeping for {}'.format(wid,curTime-startTime,1200-(curTime-startTime))
-	time.sleep(1200-(curTime-startTime))
-	print 'worker {} is doing third pass'.format(wid)
-	for i in xrange(workStart,workStop):
-		doScan(wid,scans[i][0], scans[i][1], api)
-	curTime=time.time()
-	print 'worker {} took {} seconds to do third pass now sleeping for {}'.format(wid,curTime-startTime,1800-(curTime-startTime))
-	time.sleep(1800-(curTime-startTime))
-	print 'worker {} is doing fourth pass'.format(wid)
-	for i in xrange(workStart,workStop):
-		doScan(wid,scans[i][0], scans[i][1], api)
-	curTime=time.time()
-	print 'worker {} took {} seconds to do fourth pass now sleeping for {}'.format(wid,curTime-startTime,2400-(curTime-startTime))
-	time.sleep(2400-(curTime-startTime))
-	print 'worker {} is doing fifth pass'.format(wid)
-	for i in xrange(workStart,workStop):
-		doScan(wid,scans[i][0], scans[i][1], api)
-	curTime=time.time()
-	print 'worker {} took {} seconds to do fifth pass now sleeping for {}'.format(wid,curTime-startTime,3000-(curTime-startTime))
-	time.sleep(3000-(curTime-startTime))
-	print 'worker {} is doing sixth pass'.format(wid)
-	for i in xrange(workStart,workStop):
-		doScan(wid,scans[i][0], scans[i][1], api)
-	curTime=time.time()
-	print 'worker {} took {} seconds to do sixth pass'.format(wid,curTime-startTime)
+	print 'worker {} took {} seconds to do {} pass ending thread'.format(wid,curTime-startTime,num2words[6])
 
 def main():
 	tscans = genwork()
 	print 'total of {} steps'.format(tscans)
-	print 'with {} workers, doing {} scans each, would take {} hours'.format(len(config['users']),config['stepsPerPassPerWorker'],int(math.ceil(tscans/config['stepsPerPassPerWorker'])))
+	numWorkers = ((tscans-1)//config['stepsPerPassPerWorker'])+1
+	if numWorkers > len(config['users']):
+		numWorkers = len(config['users'])
+	print 'with {} workers, doing {} scans each, would take {} hours'.format(numWorkers,config['stepsPerPassPerWorker'],int(math.ceil(tscans/(numWorkers*config['stepsPerPassPerWorker']))))
 	if (config['stepsPerPassPerWorker']*config['scanDelay']) > 600:
 		print 'error. scan will take more than 10mins so all 6 scans will take more than 1 hour'
 		print 'please try using less scans per worker'
@@ -175,16 +173,17 @@ def main():
 		return None
 #setup done
 
-	threads = [None]*len(config['users'])
+	threads = []
 	scansStarted = 0
 	for i in xrange(len(config['users'])):
 		if scansStarted >= len(scans):
 			break;
-		threads[i] = threading.Thread(target=worker, args = (i,scansStarted))
-		threads[i].start()
+		t = threading.Thread(target=worker, args = (i,scansStarted))
+		t.start()
+		threads.append(t)
 		scansStarted += config['stepsPerPassPerWorker']
 	while scansStarted < len(scans):
-		time.sleep(5)
+		time.sleep(15)
 		for i in xrange(len(threads)):
 			if not threads[i].isAlive():
 				threads[i] = threading.Thread(target=worker, args = (i,scansStarted))
