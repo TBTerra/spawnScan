@@ -140,11 +140,11 @@ def worker(wid,Wstart):
 		else:
 			print 'worker {} took {} seconds to do pass so not sleeping'.format(wid,curTime-startTime,j)
 	startTime = time.time()
-	print 'worker {} is doing {} pass'.format(wid,num2words[6])
+	print 'worker {} is doing {} pass'.format(wid,num2words[5])
 	for i in xrange(workStart,workStop):
 		doScan(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
-	print 'worker {} took {} seconds to do {} pass ending thread'.format(wid,curTime-startTime,num2words[6])
+	print 'worker {} took {} seconds to do {} pass ending thread'.format(wid,curTime-startTime,num2words[5])
 
 def main():
 	tscans = genwork()
