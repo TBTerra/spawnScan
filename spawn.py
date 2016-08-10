@@ -132,7 +132,7 @@ def worker(wid,Wstart):
 		startTime = time.time()
 		print 'worker {} is doing {} pass'.format(wid,num2words[j])
 		for i in xrange(workStart,workStop):
-			doScan(wid,scans[i][0], scans[i][1], api)
+			doScanp(wid,scans[i][0], scans[i][1], api)
 		curTime=time.time()
 		if 600-(curTime-startTime) > 0:
 			print 'worker {} took {} seconds to do {} pass now sleeping for {}'.format(wid,curTime-startTime,j,600-(curTime-startTime))
@@ -142,7 +142,7 @@ def worker(wid,Wstart):
 	startTime = time.time()
 	print 'worker {} is doing {} pass'.format(wid,num2words[5])
 	for i in xrange(workStart,workStop):
-		doScan(wid,scans[i][0], scans[i][1], api)
+		doScanp(wid,scans[i][0], scans[i][1], api)
 	curTime=time.time()
 	print 'worker {} took {} seconds to do {} pass ending thread'.format(wid,curTime-startTime,num2words[5])
 

@@ -1,4 +1,4 @@
-# spawnScan 0.2.4(mostly stable)(updated for 6st aug patch[unknown 6])
+# spawnScan 0.2.5(mostly stable)(updated for 6st aug patch[unknown 6])
 Now has customisable rate-limiting, a handler for oversized scans, and takes account of the 70m search radius
 
 ## A simple and fast spawnPoint finder for pokemon go
