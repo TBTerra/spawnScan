@@ -128,7 +128,7 @@ def worker(wid,Wstart):
 	time.sleep(0.5)
 	api.get_player()
 	#iterate
-	for j in range(5)
+	for j in range(5):
 		startTime = time.time()
 		print 'worker {} is doing {} pass'.format(wid,num2words[j])
 		for i in xrange(workStart,workStop):
