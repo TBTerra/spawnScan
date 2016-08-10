@@ -48,7 +48,7 @@ def doScan(wid, sLat, sLng, api):
 			response_dict = api.get_map_objects(latitude = sLat, longitude = sLng, since_timestamp_ms = timestamps, cell_id = cell_ids)
 		except  ServerSideRequestThrottlingException:
 			config['scanDelay'] += 0.5
-			print ('kk.. increasing sleep by 0.5 to [}').format(config['scanDelay'])
+			print ('kk.. increasing sleep by 0.5 to {}').format(config['scanDelay'])
 			time.sleep(config['scanDelay'])
 			continue
 		except:
