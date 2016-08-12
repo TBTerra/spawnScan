@@ -145,7 +145,7 @@ def worker(wid,Wstart):
             i += 1
             LoginApi.get_player()
         except ServerSideRequestThrottlingException:
-            print("Could not retrieve player information, Waiting "+str(10+i)" seconds and trying again.")
+            print("Could not retrieve player information, Waiting "+str(10+i)+" seconds and trying again.")
             time.sleep(config['scanDelay'] + i)
             pass
     #iterate
