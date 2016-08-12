@@ -11,7 +11,7 @@ import utils
 
 from pgoapi import pgoapi
 from pgoapi import utilities as util
-from pgoapi.exceptions import NotLoggedInException, ServerSideRequestThrottlingException, ServerBusyOrOfflineException
+from pgoapi.exceptions import NotLoggedInException, ServerSideRequestThrottlingException, ServerBusyOrOfflineException, AuthException
 
 from s2sphere import CellId, LatLng
 
@@ -116,6 +116,14 @@ def genwork():
 		totalwork += latSteps * lngSteps
 	return totalwork
 
+def login(auth, username, password):
+	try:
+	    api = pgoapi.PGoApi(provider=auth, username=username, password=password, position_lat=0, position_lng=0, position_alt=0)
+	except  AuthException:
+		print("Could not retrieve a PTC Access Token, Waiting 10 seconds and trying again.")
+		time.sleep(10)
+		login(auth, username, password)
+
 def worker(wid,Wstart):
 	workStart = min(Wstart,len(scans)-1)
 	workStop = min(Wstart+config['stepsPerPassPerWorker'],len(scans)-1)
@@ -123,9 +131,8 @@ def worker(wid,Wstart):
 		return
 	print 'worker {} is doing steps {} to {}'.format(wid,workStart,workStop)
 	#login
-	api = pgoapi.PGoApi(provider=config['auth_service'], username=config['users'][wid]['username'], password=config['users'][wid]['password'], position_lat=0, position_lng=0, position_alt=0)
-	api.activate_signature(utils.get_encryption_lib_path())
-	time.sleep(0.5)
+	login(config['auth_service'], config['users'][wid]['username'], config['users'][wid]['password'])
+	time.sleep(1)
 	api.get_player()
 	#iterate
 	for j in range(5):
