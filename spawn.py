@@ -118,15 +118,17 @@ def genwork():
 
 def login(auth, username, password):
         while True:
+            i = 0
             try:
+                i += 1
                 time.sleep(1)
-                global LoginApi
                 LoginApi = pgoapi.PGoApi(provider=auth, username=username, password=password, position_lat=0, position_lng=0, position_alt=0)
-                time.sleep(10)
-                break;
-            except  AuthException:
-                print("Could not retrieve a PTC Access Token, Waiting 10 seconds and trying again.")
-                time.sleep(10)
+                time.sleep(config['scanDelay'])
+                return LoginApi
+                break
+            except AuthException:
+                print("Could not retrieve a PTC Access Token, Waiting "+str(10+i)+" seconds and trying again.")
+                time.sleep(config['scanDelay'] + i)
                 pass
 
 def worker(wid,Wstart):
@@ -136,8 +138,16 @@ def worker(wid,Wstart):
         return
     print 'worker {} is doing steps {} to {}'.format(wid,workStart,workStop)
     #login
-    login(config['auth_service'], config['users'][wid]['username'], config['users'][wid]['password'])
-    LoginApi.get_player()
+    LoginApi = login(config['auth_service'], config['users'][wid]['username'], config['users'][wid]['password'])
+    while True:
+        i = 0
+        try:
+            i += 1
+            LoginApi.get_player()
+        except ServerSideRequestThrottlingException:
+            print("Could not retrieve player information, Waiting "+str(10+i)" seconds and trying again.")
+            time.sleep(config['scanDelay'] + i)
+            pass
     #iterate
     for j in range(5):
         startTime = time.time()
