@@ -111,8 +111,12 @@ def genwork():
 		if lngSteps<1:
 			lngSteps=1
 		for i in range(latSteps):
-			for j in range(lngSteps):
-				scans.append([startLat+(dlat*i), startLng+(dlng*j)])
+			if (i%2)==0:
+				for j in range(0,lngSteps,1):
+					scans.append([startLat+(dlat*i), startLng+(dlng*j)])
+			else:
+				for j in range(lngSteps-1,-1,-1):
+					scans.append([startLat+(dlat*i), startLng+(dlng*j)])
 		totalwork += latSteps * lngSteps
 	return totalwork
 
