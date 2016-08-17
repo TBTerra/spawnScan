@@ -127,10 +127,18 @@ def worker(wid,Wstart):
 		return
 	print 'worker {} is doing steps {} to {}'.format(wid,workStart,workStop)
 	#login
-	api = pgoapi.PGoApi(provider=config['auth_service'], username=config['users'][wid]['username'], password=config['users'][wid]['password'], position_lat=0, position_lng=0, position_alt=0)
-	api.activate_signature(utils.get_encryption_lib_path())
+	login_attempt = 1
+	logged_in = False
+	while not logged_in:
+		api = pgoapi.PGoApi(provider=config['auth_service'], username=config['users'][wid]['username'], password=config['users'][wid]['password'], position_lat=0, position_lng=0, position_alt=0)
+		api.activate_signature(utils.get_encryption_lib_path())
+		try:
+			api.get_player()
+			logged_in = True
+		except NotLoggedInException:
+			print('thread {} Login Error, retry {}/10').format(wid,login_attempt)
+			login_attempt += 1
 	time.sleep(0.5)
-	api.get_player()
 	#iterate
 	for j in range(5):
 		startTime = time.time()
@@ -182,6 +190,7 @@ def main():
 	for i in xrange(len(config['users'])):
 		if scansStarted >= len(scans):
 			break;
+		time.sleep(1)
 		t = threading.Thread(target=worker, args = (i,scansStarted))
 		t.start()
 		threads.append(t)
