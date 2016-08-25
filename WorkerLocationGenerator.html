@@ -99,7 +99,8 @@
 					west: Lng
 				},
 				map: map,
-				editable: true
+				editable: true,
+				draggable: true
 			});
 			rectangles.push(rectangle);
 			locations.push('\n['+rectangle.getBounds().getNorthEast().lat()+', '+rectangle.getBounds().getSouthWest().lng()+', '+rectangle.getBounds().getSouthWest().lat()+', '+rectangle.getBounds().getNorthEast().lng()+']');
