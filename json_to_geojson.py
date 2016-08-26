@@ -2,29 +2,21 @@ import json
 import geojson
 import pprint
 
-with open('gyms.json') as file:
-	gyms = json.load(file)
+def convert_to_geojson(infile, outfile):
+    with open(infile) as file:
+        items = json.load(file)
+    geoitems = []
+    for location in items:
+        point = geojson.Point((location['lng'], location['lat']))
+        feature = geojson.Feature(geometry=point,
+                    id=location['id'], properties={ "name": location['id'] })
+        geoitems.append(feature)
+    features = geojson.FeatureCollection(geoitems)
+    f = open(outfile, 'w')
+    json.dump(features, f)
+    f.close()
 
-geostops = []
-for location in gyms:
-	point = geojson.Point((location['lng'], location['lat']))
-	feature = geojson.Feature(geometry=point, id=location['id'],properties={"name":location['id']})
-	geostops.append(feature)
-features = geojson.FeatureCollection(geostops)
-f = open('geo_gyms.json', 'w')
-json.dump(features,f)
-f.close()
 
-
-with open('stops.json') as file:
-	stops = json.load(file)
-
-geostops = []
-for location in stops:
-	point = geojson.Point((location['lng'], location['lat']))
-	feature = geojson.Feature(geometry=point, id=location['id'],properties={"name":location['id']})
-	geostops.append(feature)
-features = geojson.FeatureCollection(geostops)
-f = open('geo_stops.json', 'w')
-json.dump(features,f)
-f.close()
+if __name__ == "__main__":
+    convert_to_geojson('gyms.json', 'geo_gyms.json')
+    convert_to_geojson('stops.json', 'geo_stops.json')
